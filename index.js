@@ -8,12 +8,13 @@ const getSchedule = async () => {
         const $ = cheerio.load(data);
         const schedules = [];
 
-        $('.entry-schedule__calendar > table a').each((_idx, el) => {
-            const schedule = {
-                day: $(el).closest('td').prev().text().trim(),
-                show: $(el).text().trim(),
-                link: `https://jkt48.com${$(el).attr('href')}`,
+        $('.entry-schedule__calendar > table a').each((index, element) => {
+            let schedule = {
+                day: $(element).closest('td').prev().text().trim(),
+                show: $(element).text().trim(),
+                link: `https://jkt48.com${$(element).attr('href')}`,
             };
+            
             schedules.push(schedule);
         });
 
