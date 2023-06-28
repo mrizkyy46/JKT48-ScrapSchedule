@@ -1,6 +1,6 @@
 # jkt48-scrapschedule
 Simple scraping implementation to get schedules on the jkt48 website with CheerioJS
-This is an example of <script src="https://gist.github.com/mrizkyy46/b74432448990b99dd289479da0a2cf19.js">schedules.json</script>
+This is an example of [schedules.json](https://gist.github.com/mrizkyy46/b74432448990b99dd289479da0a2cf19.js)
 
 ## How to Use
 Before you can use this project, you need to install the dependencies.
