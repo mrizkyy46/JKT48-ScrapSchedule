@@ -9,12 +9,15 @@ const getSchedule = async () => {
         const schedules = [];
 
         $('.entry-schedule__calendar > table a').each((index, element) => {
+            let link = `https://jkt48.com${$(element).attr('href')}`;
+            
             let schedule = {
+                id: getScheduleId(link),
                 day: $(element).closest('td').prev().text().trim(),
                 show: $(element).text().trim(),
-                link: `https://jkt48.com${$(element).attr('href')}`,
+                link: link,
             };
-            
+
             schedules.push(schedule);
         });
 
@@ -25,4 +28,25 @@ const getSchedule = async () => {
     }
 };
 
+const getScheduleId = (link) => {
+    const linkParts = link.split('/');
+    const typeEvent = linkParts[3] ?? '';
+    let id = '';
+
+    if (typeEvent === 'theater' || typeEvent === 'event') {
+        const splitText = linkParts[linkParts.length - 1]?.split('?')[0] ?? '';
+        id = `${typeEvent}_${splitText}`;
+    } else if (typeEvent === 'calendar') {
+        const year = linkParts[6] ?? '';
+        const month = linkParts[8] ?? '';
+        const day = linkParts[linkParts.length - 1]?.split('?')[0] ?? '';
+        id = `${typeEvent}_${year}${month}${day}`;
+    }
+
+    return id;
+};
+
 getSchedule();
+
+
+
