@@ -8,9 +8,14 @@ const getSchedule = async () => {
         const $ = cheerio.load(data);
         const schedules = [];
 
+        setTimeout(() => {
+            const linkNextMonth = $(".entry-schedule__header--after").find("a").attr('href');
+            getScheduleNextMonth(`https://jkt48.com${linkNextMonth}`);
+        }, 1000);
+
         $('.entry-schedule__calendar > table a').each((index, element) => {
             let link = `https://jkt48.com${$(element).attr('href')}`;
-            
+
             let schedule = {
                 id: getScheduleId(link),
                 day: $(element).closest('td').prev().text().trim(),
@@ -22,6 +27,32 @@ const getSchedule = async () => {
         });
 
         await fs.writeFile('schedules.json', JSON.stringify(schedules, null, 2));
+        console.log('Successfully written data to file');
+    } catch (error) {
+        console.error(error);
+    }
+};
+
+const getScheduleNextMonth = async (url) => {
+    try {
+        const { data } = await axios.get(url);
+        const $ = cheerio.load(data);
+        const schedules = [];
+
+        $('.entry-schedule__calendar > table a').each((index, element) => {
+            let link = `https://jkt48.com${$(element).attr('href')}`;
+
+            let schedule = {
+                id: getScheduleId(link),
+                day: $(element).closest('td').prev().text().trim(),
+                show: $(element).text().trim(),
+                link: link,
+            };
+
+            schedules.push(schedule);
+        });
+
+        await fs.writeFile('schedules-nextmonth.json', JSON.stringify(schedules, null, 2));
         console.log('Successfully written data to file');
     } catch (error) {
         console.error(error);
