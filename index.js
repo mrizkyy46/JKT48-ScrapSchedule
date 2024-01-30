@@ -1,19 +1,31 @@
-const axios = require('axios');
-const cheerio = require('cheerio');
+const Scrappey = require('scrappey-wrapper');
 const fs = require('fs').promises;
+const cheerio = require('cheerio');
+
+const apiKey = 'YOUR_API_KEY'; // Replace with your Scrappey API key https://scrappey.com/
+const scrappey = new Scrappey(apiKey);
 
 const getSchedule = async () => {
     try {
-        const { data } = await axios.get('https://jkt48.com/calendar/list?lang=id');
-        const $ = cheerio.load(data);
+        const createSession = await scrappey.createSession({
+            "session": "test",
+        });
+
+        const session = createSession.session;
+
+        const getResponse = await scrappey.get({
+            session: session,
+            url: 'https://jkt48.com/calendar/list?lang=id',
+        });
+
+        const $ = cheerio.load(getResponse.solution.response);
+
         const schedules = [];
 
-        setTimeout(() => {
-            const linkNextMonth = $(".entry-schedule__header--after").find("a").attr('href');
-            getScheduleNextMonth(`https://jkt48.com${linkNextMonth}`);
-        }, 1000);
+        const linkNextMonth = $(".entry-schedule__header--after").find("a").attr('href');
+        const linkNextMonthFull = `https://jkt48.com${linkNextMonth}`;
 
-        $('.entry-schedule__calendar > table a').each((index, element) => {
+        const schedulesCurrentMonth = $('.entry-schedule__calendar > table a').map((index, element) => {
             let link = `https://jkt48.com${$(element).attr('href')}`;
 
             let schedule = {
@@ -23,20 +35,31 @@ const getSchedule = async () => {
                 link: link,
             };
 
-            schedules.push(schedule);
-        });
+            return schedule;
+        }).get();
 
-        await fs.writeFile('schedules.json', JSON.stringify(schedules, null, 2));
-        console.log('Successfully written data to file');
+        await fs.writeFile('schedules.json', JSON.stringify(schedulesCurrentMonth, null, 2));
+        console.log('Successfully written current month data to file');
+
+        const schedulesNextMonth = await getScheduleNextMonth(linkNextMonthFull, session);
+        await fs.writeFile('schedules-nextmonth.json', JSON.stringify(schedulesNextMonth, null, 2));
+        console.log('Successfully written next month data to file');
+
+        await scrappey.destroySession(session);
     } catch (error) {
         console.error(error);
     }
 };
 
-const getScheduleNextMonth = async (url) => {
+const getScheduleNextMonth = async (url, session) => {
     try {
-        const { data } = await axios.get(url);
-        const $ = cheerio.load(data);
+        const getResponse = await scrappey.get({
+            session: session,
+            url: url,
+        });
+
+        const $ = cheerio.load(getResponse.solution.response);
+
         const schedules = [];
 
         $('.entry-schedule__calendar > table a').each((index, element) => {
@@ -52,10 +75,10 @@ const getScheduleNextMonth = async (url) => {
             schedules.push(schedule);
         });
 
-        await fs.writeFile('schedules-nextmonth.json', JSON.stringify(schedules, null, 2));
-        console.log('Successfully written data to file');
+        return schedules;
     } catch (error) {
         console.error(error);
+        return [];
     }
 };
 
@@ -78,6 +101,3 @@ const getScheduleId = (link) => {
 };
 
 getSchedule();
-
-
-
