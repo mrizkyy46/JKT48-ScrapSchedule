@@ -1,5 +1,6 @@
 const Scrappey = require('scrappey-wrapper');
 const fs = require('fs').promises;
+const cheerio = require('cheerio');
 
 const apiKey = 'YOUR_API_KEY'; // Replace with your Scrappey API key https://scrappey.com/
 const scrappey = new Scrappey(apiKey);
